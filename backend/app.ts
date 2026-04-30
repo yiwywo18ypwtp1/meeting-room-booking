@@ -3,6 +3,7 @@ import cors from "cors";
 
 import authRouter from "./modules/routes/auth.router";
 import roomsRouter from "./modules/routes/rooms.router";
+import bookingsRouter from "./modules/routes/bookings.router";
 
 
 const app = express();
@@ -17,6 +18,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/rooms", roomsRouter);
+app.use("/", bookingsRouter);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

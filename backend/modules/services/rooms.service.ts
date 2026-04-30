@@ -1,6 +1,8 @@
 import { prisma } from "../../db";
+
 import { RoomCreate, RoomUpdate } from "../../types/room";
 import { UserId } from "../../types/user";
+import { HttpError } from "../../utils/HttpError";
 
 export const create = async (data: RoomCreate, userId: UserId) => {
     return prisma.room.create({
@@ -68,9 +70,7 @@ export const findOne = async (id: number, userId: UserId) => {
     });
 
     if (!room) {
-        const err = new Error("Room not found") as any;
-        err.status = 404;
-        throw err;
+        throw new HttpError("Room not found", 404);
     }
 
     return room;
@@ -90,9 +90,7 @@ export const update = async (id: number, userId: UserId, data: RoomUpdate) => {
     });
 
     if (!room) {
-        const err = new Error("No access or room not found") as any;
-        err.status = 403;
-        throw err;
+        throw new HttpError("No access or room not found", 403);
     }
 
     return prisma.room.update({
@@ -115,9 +113,7 @@ export const remove = async (id: number, userId: UserId) => {
     });
 
     if (!room) {
-        const err = new Error("No access or room not found") as any;
-        err.status = 403;
-        throw err;
+        throw new HttpError("No access or room not found", 403);
     }
 
     return prisma.$transaction([
@@ -131,4 +127,55 @@ export const remove = async (id: number, userId: UserId) => {
             where: { id }
         })
     ]);
+};
+
+export const addMember = async (
+    roomId: number,
+    adminId: number,
+    email: string,
+    role: "USER" | "ADMIN"
+) => {
+    const room = await prisma.room.findUnique({ where: { id: roomId } });
+    if (!room) {
+        throw Object.assign(new Error("Room not found"), { status: 404 });
+    }
+
+    const isAdmin = await prisma.roomMember.findFirst({
+        where: {
+            roomId,
+            userId: adminId,
+            role: "ADMIN",
+        },
+    });
+
+    if (!isAdmin) {
+        throw new HttpError("No access", 403);
+    }
+
+    const user = await prisma.user.findUnique({
+        where: { email },
+    });
+
+    if (!user) {
+        throw Object.assign(new Error("User not found"), { status: 404 });
+    }
+
+    const exists = await prisma.roomMember.findFirst({
+        where: {
+            roomId,
+            userId: user.id,
+        },
+    });
+
+    if (exists) {
+        throw new HttpError("Already a member", 409)
+    }
+
+    return prisma.roomMember.create({
+        data: {
+            roomId,
+            userId: user.id,
+            role,
+        },
+    });
 };

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import * as roomsService from "../services/rooms.service";
 import { RoomCreate, RoomUpdate } from "../../types/room";
 
@@ -68,6 +69,25 @@ export const deleteRoom = async (req: Request<{ id: string }>, res: Response) =>
 		await roomsService.remove(id, userId);
 
 		res.json({ message: "Room deleted" });
+	} catch (err: any) {
+		res.status(err.status || 500).json({
+			message: err.message,
+		});
+	}
+};
+
+export const addMember = async (
+	req: Request<{ roomId: string }, {}, { email: string; role: "USER" | "ADMIN" }>,
+	res: Response
+) => {
+	try {
+		const adminId = (req as any).user.id;
+		const roomId = Number(req.params.roomId);
+		const { email, role } = req.body;
+
+		const member = await roomsService.addMember(roomId, adminId, email, role);
+
+		res.json(member);
 	} catch (err: any) {
 		res.status(err.status || 500).json({
 			message: err.message,

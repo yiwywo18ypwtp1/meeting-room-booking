@@ -1,9 +1,9 @@
 import { prisma } from "../../db";
 
 import { checkPass, hashPass } from "../../utils/hashPass";
-import { User } from "../../types/user";
 import { generate_token } from "../../middlewares/JWTAuth";
 import { UserId, UserLogin, UserSignup } from "../../types/user";
+import { HttpError } from "../../utils/HttpError";
 
 
 export const signup = async ({ name, email, password }: UserSignup) => {
@@ -12,9 +12,7 @@ export const signup = async ({ name, email, password }: UserSignup) => {
     });
 
     if (existingUser) {
-        const err = new Error('User already exists') as any;
-        err.status = 409;
-        throw err;
+        throw new HttpError("User already exists", 409);
     }
 
     const hashedPassword = await hashPass(password);
@@ -43,9 +41,7 @@ export const login = async ({ email, password }: UserLogin) => {
     })
 
     if (!existUser) {
-        const err = new Error("No User with this email exists") as any;
-        err.status = 404;
-        throw err;
+        throw new HttpError("No User with this email exists", 404);
     }
 
     await checkPass(password, existUser.password);
@@ -64,9 +60,7 @@ export const getMe = async (userId: UserId) => {
     });
 
     if (!user) {
-        const err = new Error("User not found") as any;
-        err.status = 404;
-        throw err;
+        throw new HttpError("User not found", 404);
     }
 
     return user;

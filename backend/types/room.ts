@@ -25,3 +25,5 @@ export type RoomUpdate = Partial<{
     name: string;
     description?: string;
 }>;
+
+export type RoomId = number;

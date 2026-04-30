@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+
 import * as authService from "../services/auth.service"
 import { User, UserSignup, UserLogin } from "../../types/user";
 

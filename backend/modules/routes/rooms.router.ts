@@ -13,4 +13,6 @@ router.post("/", roomsController.createRoom);
 router.patch("/:id", roomsController.updateRoom);
 router.delete("/:id", roomsController.deleteRoom);
 
+router.post("/:roomId/members", roomsController.addMember);
+
 export default router;
