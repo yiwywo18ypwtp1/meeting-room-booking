@@ -46,7 +46,20 @@ export const login = async ({ email, password }: UserLogin) => {
 
     await checkPass(password, existUser.password);
 
-    return await generate_token({ id: existUser.id, name: existUser.name, email: existUser.email });
+    const token = await generate_token({
+        id: existUser.id,
+        name: existUser.name,
+        email: existUser.email,
+    });
+
+    return {
+        token,
+        user: {
+            id: existUser.id,
+            name: existUser.name,
+            email: existUser.email,
+        },
+    };
 }
 
 export const getMe = async (userId: UserId) => {
