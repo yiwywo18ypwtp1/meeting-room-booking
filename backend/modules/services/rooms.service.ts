@@ -120,7 +120,15 @@ export const remove = async (id: number, userId: UserId) => {
         throw err;
     }
 
-    return prisma.room.delete({
-        where: { id },
-    });
+    return prisma.$transaction([
+        prisma.roomMember.deleteMany({
+            where: { roomId: id }
+        }),
+        prisma.booking.deleteMany({
+            where: { roomId: id }
+        }),
+        prisma.room.delete({
+            where: { id }
+        })
+    ]);
 };
